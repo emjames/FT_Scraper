@@ -46,7 +46,7 @@ def get_xid(index):
 #                       file name for data
 #                       file location for data
 def get_user_input():
-    print 'Leave blank for defaults'
+    print '=== Leave blank for defaults ==='
     index = raw_input('Index to scrape (default: ' + _index + ' > ')
     if index:
         user['xid'] = get_xid(index)
@@ -74,7 +74,7 @@ def get_user_input():
 def main():
     user_input = get_user_input()
 
-    print 'Getting the indicies for ', user_input['index']
+    print 'Getting the indices for ', user_input['index']
     # create an instance of IOJson
     saveData = IOCSV(user_input['file_path'], user_input['file_name'])
 
