@@ -23,15 +23,18 @@ user = {
 # get xid from an index (i.e INX:IOM, FTSE:FSI, etc)
 def get_xid(index):
     payload = {'s': index}
-    xid_site = "https://markets.ft.com/data/indices/tearsheet/constituents"
+    # xid_site = "https://markets.ft.com/data/indices/tearsheet/constituents"
+    xid_site = "https://markets.ft.com/data/indices/tearsheet/summary"
 
     while True:
         try:
             page = requests.get(xid_site, params=payload)
             tree = html.fromstring(page.content)
-            xid = tree.xpath('/html/body/div[3]/div[3]/section/div[1]/div/div/div')
+            # xid = tree.xpath('/html/body/div[3]/div[3]/section/div[1]/div/div/div')
+            xid = tree.xpath('/html/body/div[3]/div[2]/section[1]/div/div/div[2]/div/div/section[1]')
             if xid:
-                return xid[0].attrib['data-mod-xid']
+                # return xid[0].attrib['data-mod-xid']
+                return xid[0].attrib['data-mod-config']
             else:
                 print 'Did not find the xid for', index
                 break
@@ -47,7 +50,7 @@ def get_xid(index):
 #                       file location for data
 def get_user_input():
     print '=== Leave blank for defaults ==='
-    index = raw_input('Index to scrape (default: ' + _index + ' > ')
+    index = raw_input('Index to scrape (default: ' + _index + ')> ')
     if index:
         user['xid'] = get_xid(index)
         user['index'] = index
@@ -83,26 +86,35 @@ def main():
     website = "https://markets.ft.com/data/indices/ajax/getindexconstituents"
     payload = {'xid': user_input['xid'], 'pagenum': 1}
 
-    while True:
+    # page request status code
+    # FT sometimes has Error 500: Site unavailable
+    status_code = 200
+
+    while status_code != 500:
         try:
             # retrieve the website with the data
             # parse it and save as a tree
             page = requests.get(website, params=payload)
-            tree = html.fromstring(page.json()['html'])
-            # tree = html.fromstring(page.content)
-
-            # get the list of equities
-            equities = tree.xpath('//td/a[@class="mod-ui-link"]/text()')
-
-            if not equities:
-                # list is empty, no more data
-                break
+            print page.status_code
+            if page.status_code == 500:
+                print 'Error 500, try again later'
+                status_code = 500
             else:
-                # store into a file
-                saveData.save(equities)
-                payload['pagenum'] += 1
-                print 'Equities: '
-                pprint(equities)
+                tree = html.fromstring(page.json()['html'])
+                # tree = html.fromstring(page.content)
+
+                # get the list of equities
+                equities = tree.xpath('//td/a[@class="mod-ui-link"]/text()')
+
+                if not equities:
+                    # list is empty, no more data
+                    break
+                else:
+                    # store into a file
+                    saveData.save(equities)
+                    payload['pagenum'] += 1
+                    print 'Equities: '
+                    pprint(equities)
         except requests.exceptions.ConnectionError:
             print "Connection reset, waiting"
             time.sleep(5)

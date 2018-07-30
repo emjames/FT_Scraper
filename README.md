@@ -1,8 +1,13 @@
-# Nogle
+
+## **Financial Times Scraper**
 ###### Author: Emanuel James
 
-**scraper.py**
+# Steps to run
+* `pip install -r requirements.txt`
+* `python scraper.py`
 
+
+#### scraper.py
 Contains the main method of the script. It will ask the user for input of the following:
     indices to be scraped
     name of the file to store the data
